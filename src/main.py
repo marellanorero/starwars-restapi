@@ -8,7 +8,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User
+from models import db, User, Person, Planet, PersonUser, PlanetUser
 #from models import Person
 
 app = Flask(__name__)
@@ -30,14 +30,131 @@ def handle_invalid_usage(error):
 def sitemap():
     return generate_sitemap(app)
 
-@app.route('/user', methods=['GET'])
-def handle_hello():
+@app.route('/users', methods=['GET'])
+def get_users():
+    users = User.query.all()
+    users = list(map(lambda user: user.serialize(), users))
 
-    response_body = {
-        "msg": "Hello, this is your GET /user response "
-    }
+    return jsonify(users), 200
 
-    return jsonify(response_body), 200
+@app.route('/users', methods=['POST'])
+def post_users():
+
+    username = request.json.get('username')
+    email = request.json.get('email')
+    password = request.json.get('password')
+    people = request.json.get('people')
+    
+
+    user = User()
+    user.username =  username
+    user.email = email
+    user.password = password
+    user.people = people
+    
+    user.save()
+
+    return jsonify(user.serialize_with_favs()), 201
+
+@app.route('/people', methods=['GET'])
+def get_people():
+    people = Person.query.all()
+    people = list(map(lambda person: person.serialize(), people))
+
+    return jsonify(people), 200
+
+@app.route('/people', methods=['POST'])
+def post_people():
+    name = request.json.get('name')
+    url = request.json.get('url')
+
+    people = Person()
+    people.name =  name
+    people.url = url
+    
+    people.save()
+
+    return jsonify(people), 201
+
+@app.route('/people', methods=['PUT'])
+def put_people(id):
+    name = request.json.get('name')
+    url = request.json.get('url')
+    
+
+    people = Person()
+    people.name =  name
+    people.url = url
+    
+    people.update()
+
+    return jsonify(people), 200
+
+@app.route('/people/<int:id>', methods=['GET'])
+def get_person(id):
+ 
+    person = Person.query.get(id)
+
+    if person is None:
+        return jsonify({"msg":"This person doesn't exist"})
+
+    return jsonify(person.serialize()), 200
+
+@app.route('/planets', methods=['GET'])
+def get_planets():
+    planets = Planet.query.all()
+    planets = list(map(lambda planet: planet.serialize(), planets))
+
+    return jsonify(planets), 200
+
+@app.route('/planets/<int:id>', methods=['GET'])
+def get_planet(id):
+ 
+    planet = Planet.query.get(id)
+
+    if planet is None:
+        return jsonify({"msg":"This planet doesn't exist"})
+
+    return jsonify(planet.serialize()), 200
+
+@app.route('/users/<int:id>/favorites', methods=['POST'])
+def post_people_users():
+
+    username = request.json.get('username')
+    people = request.json.get('people')
+    
+
+    user = User()
+    user.username =  username
+    user.people = people
+    
+    user.save()
+
+    return jsonify(user.serialize_with_favs()), 201
+
+@app.route('/users/<int:id>/favorites', methods=['PUT'])
+def put_people_users(id):
+
+    username = request.json.get('username')
+    people = request.json.get('people')
+    
+
+    user = User()
+    user.username =  username
+    user.people = people
+    
+    user.save()
+
+
+    return jsonify(user.serialize_with_favs()), 200
+
+
+
+
+
+
+
+
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':

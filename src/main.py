@@ -37,24 +37,15 @@ def get_users():
 
     return jsonify(users), 200
 
-@app.route('/users', methods=['POST'])
-def post_users():
+@app.route('/users/<int:id>/favorites', methods=['GET'])
+def get_users_favorites(id):
 
-    username = request.json.get('username')
-    email = request.json.get('email')
-    password = request.json.get('password')
-    people = request.json.get('people')
-    
+    item = User.query.get(id)
 
-    user = User()
-    user.username =  username
-    user.email = email
-    user.password = password
-    user.people = people
-    
-    user.save()
+    if item is None:
+        return jsonify({"msg": "You don't have favorites"})
 
-    return jsonify(user.serialize_with_favs()), 201
+    return jsonify(item.serializeFavorites), 200
 
 @app.route('/people', methods=['GET'])
 def get_people():
@@ -63,32 +54,6 @@ def get_people():
 
     return jsonify(people), 200
 
-@app.route('/people', methods=['POST'])
-def post_people():
-    name = request.json.get('name')
-    url = request.json.get('url')
-
-    people = Person()
-    people.name =  name
-    people.url = url
-    
-    people.save()
-
-    return jsonify(people), 201
-
-@app.route('/people', methods=['PUT'])
-def put_people(id):
-    name = request.json.get('name')
-    url = request.json.get('url')
-    
-
-    people = Person()
-    people.name =  name
-    people.url = url
-    
-    people.update()
-
-    return jsonify(people), 200
 
 @app.route('/people/<int:id>', methods=['GET'])
 def get_person(id):
@@ -116,6 +81,9 @@ def get_planet(id):
         return jsonify({"msg":"This planet doesn't exist"})
 
     return jsonify(planet.serialize()), 200
+
+
+
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':

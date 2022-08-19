@@ -37,14 +37,12 @@ def get_users():
 
     return jsonify(users), 200
 
-
 @app.route('/people', methods=['GET'])
 def get_people():
     people = Person.query.all()
     people = list(map(lambda person: person.serialize(), people))
 
     return jsonify(people), 200
-
 
 @app.route('/people/<int:id>', methods=['GET'])
 def get_person(id):
@@ -74,58 +72,47 @@ def get_planet(id):
     return jsonify(planet.serialize()), 200
 
 @app.route('/users/favorites', methods=['GET'])
-def get_favorites():
+def get_favorites_people():
 
-    favs = User.query.all()
-    favs = list(map(lambda user: user.serialize_with_favs(), favs))
-
-    return jsonify(favs), 200
-
-@app.route('/favorite/people/<int:id>', methods=['POST'])
-def post_people():
-
-    fav_person = Person.json.get('id')
-    
-    if fav_person is None:
-        return jsonify({ "msg": "This person doesn't exist" })
+    people = User.query.get('people')
     
 
-    return jsonify(Person.serialize()), 201
+    if people is None:
+        return jsonify({"msg":"Favorite is empty"})
 
-@app.route('/favorite/planet/<int:id>', methods=['POST'])
-def post_planet():
+    return jsonify(people.serialize_with_favs()), 200
 
-    fav_planet = Planet.json.get('id')
+@app.route('/users/favorites/<int:name>', methods=['POST'])
+def get_favorite_person():
+
+    person = User.query.get('people')
+
+    if person is None:
+        return jsonify({"msg":"This person doesn't exist"})
+
+    return jsonify(person.serialize_with_favs()), 201
+
+
+
+@app.route('/users/favorites', methods=['GET'])
+def get_favorites_planets():
+
+    planet = User.query.get('planet')
     
-    if fav_planet is None:
-        return jsonify({ "msg": "This planet doesn't exist" })
-    
+    if planet is None:
+        return jsonify({"msg":"Favorite is empty"})
 
-    return jsonify(Planet.serialize()), 201
+    return jsonify(planet.serialize_with_favs()), 200
 
-@app.route('/favorite/people/<int:id>', methods=['DELETE'])
-def delete_person(id):
+@app.route('/users/favorites/<int:name>', methods=['POST'])
+def get_favorite_planet():
 
-    person = Person.query.get(id)
+    planet = User.query.get('planet')
 
-    if not person: return jsonify({ "msg": "Person doesn't exists!"}), 404
+    if planet is None:
+        return jsonify({"msg":"This planet doesn't exist"})
 
-    person.delete()
-
-    return jsonify({ "msg": "Person deleted!"}), 200
-
-@app.route('/favorite/planet/<int:id>', methods=['DELETE'])
-def delete_planet(id):
-
-    planet = Planet.query.get(id)
-
-    if not planet: return jsonify({ "msg": "Planet doesn't exists!"}), 404
-
-    planet.delete()
-
-    return jsonify({ "msg": "Planet deleted!"}), 200
-
-
+    return jsonify(planet.serialize_with_favs()), 201
 
 
 # this only runs if `$ python src/main.py` is executed
